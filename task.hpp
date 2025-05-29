@@ -12,6 +12,8 @@ template<typename T> struct task;
 namespace detail {
 template <typename T>
 struct promise_type_base {
+    coroutine_handle<> continuation_ = std::noop_coroutine();
+
     task<T> get_return_object();
     
     suspend_always initial_suspend() { return {}; }
@@ -34,8 +36,6 @@ struct promise_type_base {
     void unhandled_exception() {
         std::exit(-1);
     }
-
-    coroutine_handle<> continuation_ = std::noop_coroutine();
 }; // struct promise_type_base
 
 template<typename T>
@@ -55,12 +55,19 @@ struct promise_type<void> final : promise_type_base<void> {
 template<typename T = void>
 struct task {
     using promise_type = detail::promise_type<T>;
-    task():handle_(nullptr) {}
-    task(coroutine_handle<promise_type> handle):handle_(handle) {}
+    coroutine_handle<promise_type> handle_;
+    
+    task(coroutine_handle<promise_type> handle = nullptr) : handle_(handle) {}
     
     bool await_ready() noexcept { return false; }
 
-    T await_resume() { return handle_.promise().result; }
+    T await_resume() { 
+        if constexpr (std::is_void_v<T>) {
+            return;
+        } else {
+            return handle_.promise().result;
+        }
+    }
 
     coroutine_handle<> await_suspend(coroutine_handle<> waiter) {
         handle_.promise().continuation_ = waiter;
@@ -68,10 +75,9 @@ struct task {
     }
 
     void resume() {
-        handle_.resume();
+        if (handle_)
+            handle_.resume();
     }
-
-    coroutine_handle<promise_type> handle_;
 };
 
 namespace detail {

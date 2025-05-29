@@ -1,15 +1,15 @@
 #include <iostream>
-#include "task.h"
+#include "task.hpp"
 
-task<int> foo() {
+task<void> foo() {
     std::cout << "foo start\n";
-    co_return 42;
+    co_return;
 }
 
 task<void> bar() {
     std::cout << "bar start\n";
-    int x = co_await foo(); // 嵌套 co_await 测试
-    std::cout << "got from foo: " << x << "\n";
+    co_await foo(); // 嵌套 co_await 测试
+    std::cout << "bar end\n";
     co_return;
 }
 
