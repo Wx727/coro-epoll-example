@@ -29,6 +29,7 @@ struct promise_type_base {
         }
     };
 
+    // 协程在执行完 co_return 后，会隐式地 co_await 其 promise_type::final_suspend() 返回的 final_awaiter
     auto final_suspend() noexcept {
         return final_awaiter{};
     }
@@ -61,17 +62,17 @@ struct task {
     
     bool await_ready() noexcept { return false; }
 
+    coroutine_handle<> await_suspend(coroutine_handle<> waiter) {
+        handle_.promise().continuation_ = waiter;
+        return handle_;
+    }
+
     T await_resume() { 
         if constexpr (std::is_void_v<T>) {
             return;
         } else {
             return handle_.promise().result;
         }
-    }
-
-    coroutine_handle<> await_suspend(coroutine_handle<> waiter) {
-        handle_.promise().continuation_ = waiter;
-        return handle_;
     }
 
     void resume() {

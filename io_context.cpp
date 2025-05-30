@@ -23,7 +23,7 @@ void IoContext::run() {
                 socket->resume();
             }
             if (events[i].events & EPOLLOUT) {
-
+                socket->resume();
             }
         }
     }

@@ -3,9 +3,15 @@
 #include <cstdint>
 
 class Socket;
+class Recv;
+class Send;
 
 class IoContext {
 public:
+    friend Socket;
+    friend Recv;
+    friend Send;
+
     IoContext();
 
     void run();
@@ -13,7 +19,7 @@ public:
 private:
     static constexpr std::size_t max_events = 10;
     const int fd_;
-    friend Socket;
+
     void Attach(Socket* socket);
     void Detach(Socket* socket);
     void WatchRead(Socket* socket);

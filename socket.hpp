@@ -8,11 +8,15 @@
 
 class IoContext;
 class Accept;
+class Recv;
+class Send;
 
 class Socket {
 public:
     friend IoContext;
     friend Accept;
+    friend Recv;
+    friend Send;
 
     Socket(std::string_view port, IoContext& io_context);
 
@@ -24,6 +28,10 @@ public:
     bool resume();
 
     task<std::shared_ptr<Socket>> accept();
+
+    Recv recv(void* buffer, std::size_t len);
+
+    Send send(void* buffer, std::size_t len);
 
     int getfd() {
         return fd_;

@@ -19,6 +19,7 @@ Socket::Socket(std::string_view port, IoContext& io_context) : io_context_(io_co
     getaddrinfo(nullptr, port.data(), &hints, &res);
     // 显式使用全局命名空间
     fd_ = ::socket(res->ai_family, res->ai_socktype, res->ai_protocol);
+    // 设置 socket 选项，允许端口复用
     int opt = 1;
     ::setsockopt(fd_, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt));
     if (::bind(fd_, res->ai_addr, res->ai_addrlen) == -1) {
@@ -53,7 +54,17 @@ task<std::shared_ptr<Socket>> Socket::accept() {
     if (fd == -1) {
         throw std::runtime_error{"accept error"};
     }
+    // 这时候调用 promise_type 的 return_value 函数
+    // 这个 shared_ptr 会被作为协程的返回值存储在协程的状态中，引用计数+1
     co_return std::shared_ptr<Socket>(new Socket{fd, io_context_});
+}
+
+Recv Socket::recv(void* buffer, std::size_t len) {
+    return Recv{this, buffer, len};
+}
+
+Send Socket::send(void* buffer, std::size_t len) {
+    return Send{this, buffer, len};
 }
 
 Socket::Socket(int fd, IoContext& io_context) : fd_(fd), io_context_(io_context) {
