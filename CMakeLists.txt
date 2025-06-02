@@ -8,4 +8,4 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_BUILD_TYPE Debug)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -fsanitize=address -fno-omit-frame-pointer -O1")
 
-add_executable(test echo_server.cpp io_context.cpp socket.cpp)
+add_executable(echo_server echo_server.cpp io_context.cpp socket.cpp)
