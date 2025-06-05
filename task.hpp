@@ -42,6 +42,7 @@ struct promise_type_base {
 template<typename T>
 struct promise_type final : promise_type_base<T> {
     T result;
+    // 当协程执行 co_return expression; 并且 expression 不是 void 类型时，return_value() 会被调用
     void return_value(T value) { result = value; }
     task<T> get_return_object();
 };
